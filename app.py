@@ -3,12 +3,13 @@ import os, sys
 import glob
 import re
 import numpy as np
+import cv2
 
 #load keras packages
 import keras
 from keras.models import load_model
 from keras.preprocessing import image
-from keras.applications.imagenet_utils import decode_predictions
+from keras.applications.imagenet_utils import decode_predictions, preprocess_input
 
 #Flask packages
 import flask
@@ -24,18 +25,14 @@ model = load_model(model_path)
 model._make_predict_function()
 print('Model loaded. Check http://127.0.0.1:5000/')
 
-def prepare_path(img):
-    img_size = 100
-    img_array = image.img_to_array(img)
-    new_array = img_array/255.0
-    return new_array.reshape(-1,100,100,1)
 
 def model_predict(img_path, model):
-    input_img = prepare_path(img_path)
-
+    #input_img = image.load_img(img_path, target_size = (100,100))
+    x = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    x = cv2.resize(x, (100,100))
+    x = x/255.0
     #Preprocess
-    x = np.expand_dims(input_img, axis=0)
-
+    x = x.reshape(-1, 100, 100, 1)
     #Load to model
     preds = model.predict(x)
 
@@ -56,11 +53,13 @@ def upload():
         f.save(file_path)
 
         #predict
-        preds = model_predict(file_path, model)
+        pred = model_predict(img_path=file_path, model=model)
 
-        pred_class = decode_predictions(preds, top=1)
+        CATEGORIES = ['Cat', 'Dog']
 
-        result = str(pred_class[0][0][1])
+        #pred_class = decode_predictions(pred, top=1)
+
+        result = CATEGORIES[int(pred[0][0])]
 
         return result
     return None
