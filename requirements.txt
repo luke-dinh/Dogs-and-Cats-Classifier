@@ -1,0 +1,14 @@
+keras
+flask
+cv2
+os
+numpy
+pickle
+time
+sys
+werkzeug.utils
+gevent.pywsgi
+glob
+re
+random
+matplotlib
